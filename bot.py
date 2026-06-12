@@ -258,16 +258,20 @@ async def post_daily():
 
 @tasks.loop(minutes=1)
 async def daily_loop():
-    now = datetime.now(TIMEZONE)
+    try:
+        now = datetime.now()
+        if now.hour == 14 and now.minute == 21:
+            await post_daily()
+    except Exception as e:
+        print("loop error:", e)
 
-    # 2:21 PM EST TEST TIME
-    if now.hour == 14 and now.minute == 21:
-        await post_daily()
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    daily_loop.start()
+
+    if not daily_loop.is_running():
+        daily_loop.start()
 
 # ---------------- RUN ----------------
 
