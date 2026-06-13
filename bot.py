@@ -1,4 +1,5 @@
 print("BOOT FILE STARTED")
+
 import os
 import discord
 from discord import app_commands
@@ -138,7 +139,6 @@ def get_user_data(username):
             return 0, None
 
         data = parse_roll(roll_url)
-
         update_roll_streak(username, data["roll"])
 
         return data["ep"], data
@@ -162,14 +162,17 @@ class MyBot(discord.Client):
         await self.tree.sync(guild=GUILD)
         print("SYNC COMPLETE")
 
-        # START LOOP HERE (THIS IS THE FIX)
-        daily_loop.start()
-        print("Daily loop started")
+        if not daily_loop.is_running():
+            daily_loop.start()
+            print("Daily loop started")
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")
         print("ON READY FIRED")
-        
+
+# ✅ THIS IS THE CRITICAL FIX (BOT MUST EXIST HERE)
+bot = MyBot()
+
 # ---------------- COMMANDS ----------------
 
 @bot.tree.command(name="ping", description="test", guild=GUILD)
@@ -188,10 +191,7 @@ async def checkprofile(interaction: discord.Interaction, username: str):
     xp = store["xp"].get(username, 0)
     streak = store["streaks"].get(username, {}).get("count", 0)
 
-    embed = discord.Embed(
-        title=f"{username} Profile",
-        color=0x00ffcc
-    )
+    embed = discord.Embed(title=f"{username} Profile", color=0x00ffcc)
 
     embed.add_field(name="🎲 EP", value=str(ep), inline=True)
     embed.add_field(name="⭐ XP", value=str(xp), inline=True)
@@ -212,24 +212,14 @@ async def leaderboard(interaction: discord.Interaction):
     xp = data["xp"]
 
     if not xp:
-        await interaction.response.send_message(
-            "Nobody has earned XP yet.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("Nobody has earned XP yet.")
         return
 
-    sorted_users = sorted(
-        xp.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
+    sorted_users = sorted(xp.items(), key=lambda x: x[1], reverse=True)
 
-    embed = discord.Embed(
-        title="🏆 XP Leaderboard",
-        color=0xffd700
-    )
+    embed = discord.Embed(title="🏆 XP Leaderboard", color=0xffd700)
 
-    for i, (user, value) in enumerate(sorted_users[:10], start=1):
+    for i, (user, value) in enumerate(sorted_users[:10], 1):
         embed.add_field(
             name=f"#{i} {user}",
             value=f"{value:,} XP",
@@ -274,13 +264,11 @@ async def post_daily():
     )
 
     for i, (u, ep, data) in enumerate(results[:10], 1):
-        streak = get_streak(u)
-
         embed.add_field(
             name=f"#{i} {u}",
             value=(
                 f"🎲 EP: {ep:,}\n"
-                f"🔥 Streak: {streak}\n"
+                f"🔥 Streak: {get_streak(u)}\n"
                 f"💬 {data.get('quote') or 'No quote'}\n"
                 f"🔗 {data['url']}"
             ),
@@ -288,7 +276,6 @@ async def post_daily():
         )
 
     await channel.send(content=role.mention, embed=embed)
-# ---------------- SCHEDULER ----------------
 
 # ---------------- SCHEDULER ----------------
 
@@ -312,7 +299,9 @@ async def daily_loop():
 
     except Exception as e:
         print("loop error:", e)
+
 # ---------------- RUN ----------------
+
 import traceback
 
 print("ABOUT TO RUN BOT")
@@ -322,4 +311,3 @@ try:
 except Exception as e:
     print("BOT CRASHED:", e)
     traceback.print_exc()
-
