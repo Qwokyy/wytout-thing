@@ -291,7 +291,7 @@ async def daily_loop():
 
         print("Loop tick:", now)
 
-        if now.hour == 22 and now.minute == 32:
+        if now.hour == 22 and now.minute == 45:
             if last_run_date != today:
                 last_run_date = today
                 print("Running daily post...")
