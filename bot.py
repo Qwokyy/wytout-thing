@@ -1,3 +1,4 @@
+print("BOOT FILE STARTED")
 import os
 import discord
 from discord import app_commands
@@ -292,5 +293,12 @@ async def daily_loop():
     except Exception as e:
         print("loop error:", e)
 # ---------------- RUN ----------------
+import traceback
 
-bot.run(TOKEN)
+print("ABOUT TO RUN BOT")
+
+try:
+    bot.run(TOKEN)
+except Exception as e:
+    print("BOT CRASHED:", e)
+    traceback.print_exc()
