@@ -170,13 +170,6 @@ class MyBot(discord.Client):
         print(f"Logged in as {self.user}")
         print("ON READY FIRED")
         
-bot = MyBot()
-
-import time
-
-while True:
-    print("KEEP ALIVE TEST")
-    time.sleep(10)
 # ---------------- COMMANDS ----------------
 
 @bot.tree.command(name="ping", description="test", guild=GUILD)
@@ -297,16 +290,25 @@ async def post_daily():
     await channel.send(content=role.mention, embed=embed)
 # ---------------- SCHEDULER ----------------
 
+# ---------------- SCHEDULER ----------------
+
+last_run_date = None
+
 @tasks.loop(minutes=1)
 async def daily_loop():
+    global last_run_date
+
     try:
         now = datetime.now(TIMEZONE)
+        today = now.date()
 
-        print("Loop tick:", now)  # <-- ADD THIS
+        print("Loop tick:", now)
 
-        if now.hour == 20 and now.minute == 0:
-            print("Running daily post...")
-            await post_daily()
+        if now.hour == 22 and now.minute == 32:
+            if last_run_date != today:
+                last_run_date = today
+                print("Running daily post...")
+                await post_daily()
 
     except Exception as e:
         print("loop error:", e)
