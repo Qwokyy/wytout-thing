@@ -229,14 +229,15 @@ async def leaderboard(interaction: discord.Interaction):
 # ---------------- DAILY POST ----------------
 
 async def post_daily():
-    guild = bot.get_guild(GUILD_ID)
-    channel = guild.get_channel(CHANNEL_ID)
-    role = guild.get_role(ROLE_ID)
+guild = bot.get_guild(GUILD_ID)
+channel = guild.get_channel(CHANNEL_ID)
+role = guild.get_role(ROLE_ID)
 
-    players = load_players()
-    results = []
+```
+players = load_players()
+results = []
 
-   store = load_data()
+store = load_data()
 
 for u in players:
     old_streak = get_streak(u)
@@ -253,29 +254,29 @@ for u in players:
 
 save_data(store)
 
-    results.sort(key=lambda x: x[1], reverse=True)
+results.sort(key=lambda x: x[1], reverse=True)
 
-    embed = discord.Embed(
-        title="📊 Daily RNGdle Leaderboard",
-        description=random.choice(REMINDER_MESSAGES),
-        color=0x5865F2
+embed = discord.Embed(
+    title="📊 Daily RNGdle Leaderboard",
+    description=random.choice(REMINDER_MESSAGES),
+    color=0x5865F2
+)
+
+for i, (u, ep, data) in enumerate(results[:10], 1):
+    streak = get_streak(u)
+
+    embed.add_field(
+        name=f"#{i} {u}",
+        value=(
+            f"🎲 EP: {ep:,}\n"
+            f"🔥 Streak: {streak}\n"
+            f"💬 {data.get('quote') or 'No quote'}\n"
+            f"🔗 {data['url']}"
+        ),
+        inline=False
     )
 
-    for i, (u, ep, data) in enumerate(results[:10], 1):
-        streak = get_streak(u)
-
-        embed.add_field(
-            name=f"#{i} {u}",
-            value=(
-                f"🎲 EP: {ep:,}\n"
-                f"🔥 Streak: {streak}\n"
-                f"💬 {data.get('quote') or 'No quote'}\n"
-                f"🔗 {data['url']}"
-            ),
-            inline=False
-        )
-
-    await channel.send(content=role.mention, embed=embed)
+await channel.send(content=role.mention, embed=embed)
 
 # ---------------- SCHEDULER ----------------
 
