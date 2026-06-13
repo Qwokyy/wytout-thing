@@ -282,19 +282,15 @@ async def post_daily():
 async def daily_loop():
     try:
         now = datetime.now(TIMEZONE)
+
+        print("Loop tick:", now)  # <-- ADD THIS
+
         if now.hour == 20 and now.minute == 0:
+            print("Running daily post...")
             await post_daily()
+
     except Exception as e:
         print("loop error:", e)
-
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user}")
-
-    if not daily_loop.is_running():
-        daily_loop.start()
-        print("Daily loop started")
 # ---------------- RUN ----------------
 
 bot.run(TOKEN)
