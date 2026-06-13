@@ -162,8 +162,21 @@ class MyBot(discord.Client):
         await self.tree.sync(guild=GUILD)
         print("SYNC COMPLETE")
 
+        # START LOOP HERE (THIS IS THE FIX)
+        daily_loop.start()
+        print("Daily loop started")
+
+    async def on_ready(self):
+        print(f"Logged in as {self.user}")
+        print("ON READY FIRED")
+        
 bot = MyBot()
 
+import time
+
+while True:
+    print("KEEP ALIVE TEST")
+    time.sleep(10)
 # ---------------- COMMANDS ----------------
 
 @bot.tree.command(name="ping", description="test", guild=GUILD)
@@ -307,3 +320,4 @@ try:
 except Exception as e:
     print("BOT CRASHED:", e)
     traceback.print_exc()
+
