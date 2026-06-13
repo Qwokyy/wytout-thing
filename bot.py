@@ -199,17 +199,28 @@ async def leaderboard(interaction: discord.Interaction):
     data = load_data()
     xp = data["xp"]
 
-    sorted_users = sorted(xp.items(), key=lambda x: x[1], reverse=True)
+    if not xp:
+        await interaction.response.send_message(
+            "Nobody has earned XP yet.",
+            ephemeral=True
+        )
+        return
+
+    sorted_users = sorted(
+        xp.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
 
     embed = discord.Embed(
-        title="🏆 Leaderboard",
+        title="🏆 XP Leaderboard",
         color=0xffd700
     )
 
-    for i, (user, value) in enumerate(sorted_users[:10], 1):
+    for i, (user, value) in enumerate(sorted_users[:10], start=1):
         embed.add_field(
             name=f"#{i} {user}",
-            value=f"{value} XP",
+            value=f"{value:,} XP",
             inline=False
         )
 
@@ -225,10 +236,22 @@ async def post_daily():
     players = load_players()
     results = []
 
-    for u in players:
-        ep, data = get_user_data(u)
-        if data:
-            results.append((u, ep, data))
+   store = load_data()
+
+for u in players:
+    old_streak = get_streak(u)
+
+    ep, data = get_user_data(u)
+
+    new_streak = get_streak(u)
+
+    if data:
+        results.append((u, ep, data))
+
+        if new_streak > old_streak:
+            store["xp"][u] = store["xp"].get(u, 0) + 100
+
+save_data(store)
 
     results.sort(key=lambda x: x[1], reverse=True)
 
@@ -259,8 +282,8 @@ async def post_daily():
 @tasks.loop(minutes=1)
 async def daily_loop():
     try:
-        now = datetime.now()
-        if now.hour == 14 and now.minute == 21:
+        now = datetime.now(TIMEZONE)
+        if now.hour == 20 and now.minute == 0:
             await post_daily()
     except Exception as e:
         print("loop error:", e)
@@ -272,7 +295,7 @@ async def on_ready():
 
     if not daily_loop.is_running():
         daily_loop.start()
-
+        print("Daily loop started")
 # ---------------- RUN ----------------
 
 bot.run(TOKEN)
